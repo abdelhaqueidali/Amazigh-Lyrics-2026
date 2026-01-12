@@ -1,0 +1,1040 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ⴰⵥⴰⵡⴰⵏ ⴷ ⵢⵉⵡⴰⵍⵉⵡⵏ</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-primary: #121212;
+            --bg-secondary: #1e1e1e;
+            --accent-color: #1DB954;
+            --text-primary: #ffffff;
+            --text-secondary: #b3b3b3;
+            --highlight-color: #2e77d0;
+            --translation-color: #a8d5ff; /* Color for translated text */
+            --error-color: #e74c3c;
+            --border-radius: 12px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            padding-bottom: 40px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        /* --- Header & Browser --- */
+        .app-header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-top: 10px;
+        }
+
+        .app-title {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+            background: linear-gradient(45deg, var(--accent-color), var(--highlight-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .app-subtitle {
+            color: var(--text-secondary);
+            font-weight: 300;
+            font-size: 0.9rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .song-browser {
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        #toggleSongList {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            display: none; /* Hidden until loaded */
+        }
+
+        #toggleSongList:hover {
+            background-color: #292929;
+        }
+
+        #songList {
+            list-style-type: none;
+            background-color: var(--bg-secondary);
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            max-height: 400px;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+
+        #songList.hidden {
+            display: none;
+        }
+
+        #songList li {
+            padding: 16px 20px;
+            border-bottom: 1px solid #2a2a2a;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+        }
+
+        #songList li:hover {
+            background-color: #333;
+        }
+
+        #songList li i {
+            margin-right: 15px;
+            color: var(--accent-color);
+        }
+
+        /* --- Player Container --- */
+        #playerContainer {
+            display: none;
+            background-color: var(--bg-secondary);
+            border-radius: var(--border-radius);
+            padding: 25px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+            width: 100%;
+        }
+
+        .now-playing {
+            display: flex;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .album-art {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #333, #222);
+            border-radius: 8px;
+            margin-right: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: var(--text-secondary);
+            flex-shrink: 0;
+        }
+
+        .song-info {
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .song-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* --- Audio Controls --- */
+        .progress-container {
+            height: 6px;
+            background-color: #4a4a4a;
+            border-radius: 3px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            position: relative;
+            touch-action: none;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background-color: var(--accent-color);
+            border-radius: 3px;
+            width: 0;
+            position: relative;
+        }
+
+        .time-display {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-bottom: 15px;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .player-buttons {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .control-btn {
+            background: none;
+            border: none;
+            color: var(--text-primary);
+            cursor: pointer;
+            font-size: 1.2rem;
+            padding: 10px;
+            border-radius: 50%;
+            transition: color 0.2s, background 0.2s;
+        }
+
+        .control-btn:active {
+            background-color: rgba(255,255,255,0.1);
+        }
+
+        .control-btn.play-pause {
+            font-size: 2.2rem;
+            color: var(--accent-color);
+            background-color: rgba(255,255,255,0.05);
+            width: 70px;
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .volume-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            max-width: 200px;
+            margin: 0 auto 30px auto;
+        }
+
+        .volume-slider {
+            flex: 1;
+            height: 4px;
+            background-color: #4a4a4a;
+            border-radius: 2px;
+            cursor: pointer;
+        }
+
+        .volume-level {
+            height: 100%;
+            background-color: var(--text-secondary);
+            border-radius: 2px;
+            width: 70%;
+        }
+
+        /* --- Lyrics & Translations Section --- */
+        #lyricsContainer {
+            border-top: 1px solid #333;
+            padding-top: 20px;
+        }
+
+        .controls-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .controls-group-title {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        /* Language Chips (Buttons) */
+        .chip-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .lang-chip {
+            background-color: #2a2a2a;
+            border: 1px solid #444;
+            color: var(--text-secondary);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .lang-chip.active {
+            background-color: var(--highlight-color);
+            border-color: var(--highlight-color);
+            color: white;
+        }
+
+        .lang-chip:hover:not(.active) {
+            background-color: #383838;
+        }
+
+        /* Text Size Buttons */
+        .text-size-controls {
+            display: flex;
+            gap: 5px;
+        }
+
+        .size-btn {
+            background-color: #2a2a2a;
+            border: 1px solid #444;
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .size-btn:active {
+            background-color: var(--accent-color);
+        }
+
+        .download-actions {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+            justify-content: center;
+            margin-top: 10px;
+        }
+
+        .download-btn {
+            background-color: #2a2a2a;
+            color: var(--text-secondary);
+            border: 1px solid #444;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            flex: 1;
+            text-align: center;
+        }
+        
+        .download-btn:hover {
+            background-color: #333;
+            color: white;
+        }
+
+        /* --- Lyrics Display Area --- */
+        #lyricsDisplay {
+            background-color: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            padding: 20px 10px;
+            height: 50vh; /* Takes up half screen height */
+            overflow-y: auto;
+            font-size: 1.2rem; /* Default size */
+            line-height: 1.6;
+            text-align: center;
+            scroll-behavior: smooth;
+            position: relative;
+        }
+        
+        /* Gradient fade at top and bottom of lyrics */
+        #lyricsDisplay::before, #lyricsDisplay::after {
+            content: "";
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 20px;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .lyric-block {
+            padding: 15px 5px;
+            margin-bottom: 5px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            opacity: 0.5; /* Dim inactive lyrics */
+        }
+
+        .lyric-block:hover {
+            opacity: 0.8;
+            background-color: rgba(255,255,255,0.03);
+        }
+
+        /* Active Lyric Styling */
+        .lyric-block.active {
+            opacity: 1;
+            transform: scale(1.02);
+            background-color: rgba(255,255,255,0.05);
+        }
+
+        .lyric-original {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .lyric-block.active .lyric-original {
+            color: var(--accent-color);
+            text-shadow: 0 0 15px rgba(29, 185, 84, 0.3);
+        }
+
+        .lyric-translation {
+            font-size: 0.85em;
+            color: var(--text-secondary);
+            font-weight: 400;
+            margin-top: 4px;
+        }
+
+        .lyric-block.active .lyric-translation {
+            color: var(--translation-color);
+        }
+
+        #errorDisplay {
+            display: none;
+            background-color: rgba(231, 76, 60, 0.2);
+            border: 1px solid var(--error-color);
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 8px;
+            color: #f8d7da;
+            text-align: center;
+        }
+
+        /* --- Mobile Optimization --- */
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+
+            .app-title { font-size: 1.8rem; }
+            
+            #playerContainer {
+                padding: 15px;
+                display: none; /* Flex controlled by JS */
+                flex-direction: column;
+            }
+
+            .controls-row {
+                flex-direction: column;
+            }
+            
+            .text-size-controls {
+                width: 100%;
+                justify-content: flex-end;
+                margin-top: -45px; /* Pull up next to chips */
+            }
+
+            .chip-container {
+                width: 100%;
+            }
+
+            .now-playing {
+                margin-bottom: 15px;
+            }
+
+            .player-buttons {
+                gap: 15px;
+            }
+
+            .control-btn { font-size: 1.4rem; }
+            .control-btn.play-pause { 
+                width: 60px; height: 60px; font-size: 2rem; 
+            }
+            
+            #lyricsDisplay {
+                height: 55vh; /* Taller lyrics on phone */
+                font-size: 1.1rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header class="app-header">
+            <h1 class="app-title">ⴰⵥⴰⵡⴰⵏ ⴷ ⵢⵉⵡⴰⵍⵉⵡⵏ</h1>
+            <p class="app-subtitle">Songs & Lyrics</p>
+        </header>
+
+        <div id="errorDisplay"></div>
+
+        <div class="song-browser">
+            <button id="toggleSongList"><i class="fas fa-list"></i> Browse Library</button>
+            <ul id="songList"></ul>
+        </div>
+
+        <div id="playerContainer">
+            <div class="now-playing">
+                <div class="album-art"><i class="fas fa-music"></i></div>
+                <div class="song-info">
+                    <div class="song-title" id="currentSongTitle">Select a song</div>
+                </div>
+            </div>
+
+            <div class="audio-controls">
+                <audio id="audioPlayer" preload="metadata"></audio>
+
+                <div class="progress-container" id="progressContainer">
+                    <div class="progress-bar" id="progressBar"></div>
+                </div>
+
+                <div class="time-display">
+                    <span id="currentTime">0:00</span>
+                    <span id="totalDuration">0:00</span>
+                </div>
+
+                <div class="player-buttons">
+                    <button class="control-btn" id="rewindBtn"><i class="fas fa-undo-alt"></i></button>
+                    <button class="control-btn" id="prevBtn"><i class="fas fa-step-backward"></i></button>
+                    <button class="control-btn play-pause" id="playPauseBtn"><i class="fas fa-play"></i></button>
+                    <button class="control-btn" id="nextBtn"><i class="fas fa-step-forward"></i></button>
+                    <button class="control-btn" id="forwardBtn"><i class="fas fa-redo-alt"></i></button>
+                </div>
+
+                <div class="volume-container">
+                    <i class="fas fa-volume-up" id="volumeIcon" style="font-size: 0.9rem; color: #888;"></i>
+                    <div class="volume-slider" id="volumeSlider">
+                        <div class="volume-level" id="volumeLevel"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="lyricsContainer">
+                <div class="controls-row">
+                    <div style="flex: 1;">
+                        <span class="controls-group-title">Translations</span>
+                        <div class="chip-container" id="languageChips">
+                            </div>
+                    </div>
+
+                    <div>
+                        <span class="controls-group-title" style="text-align: right;">Size</span>
+                        <div class="text-size-controls">
+                            <button class="size-btn" id="fontDown"><i class="fas fa-minus"></i></button>
+                            <button class="size-btn" id="fontUp"><i class="fas fa-plus"></i></button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="lyricsDisplay"></div>
+
+                <div class="download-actions">
+                    <button id="downloadLrcBtn" class="download-btn"><i class="fas fa-file-alt"></i> Save LRC</button>
+                    <button id="downloadSongBtn" class="download-btn"><i class="fas fa-download"></i> Save Song</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Configuration ---
+        // These are the folders where files must exist relative to the HTML file
+        const PATHS = {
+            AUDIO: 'songs/', 
+            LYRICS: 'lyrics/',
+            TRANSLATIONS: '' // Translations remain in root/LanguageFolder based on original code logic
+        };
+
+        // --- DOM Elements ---
+        const audioPlayer = document.getElementById('audioPlayer');
+        const songList = document.getElementById('songList');
+        const toggleSongListBtn = document.getElementById('toggleSongList');
+        const playerContainer = document.getElementById('playerContainer');
+        const lyricsDisplay = document.getElementById('lyricsDisplay');
+        const errorDisplay = document.getElementById('errorDisplay');
+        const downloadLrcBtn = document.getElementById('downloadLrcBtn');
+        const downloadSongBtn = document.getElementById('downloadSongBtn');
+        const currentSongTitle = document.getElementById('currentSongTitle');
+        const playPauseBtn = document.getElementById('playPauseBtn');
+        const progressBar = document.getElementById('progressBar');
+        const progressContainer = document.getElementById('progressContainer');
+        const currentTimeDisplay = document.getElementById('currentTime');
+        const totalDurationDisplay = document.getElementById('totalDuration');
+        const volumeSlider = document.getElementById('volumeSlider');
+        const volumeLevel = document.getElementById('volumeLevel');
+        const languageChipsContainer = document.getElementById('languageChips');
+        const fontUpBtn = document.getElementById('fontUp');
+        const fontDownBtn = document.getElementById('fontDown');
+
+        // --- State Variables ---
+        let currentLyrics = []; // Array of objects {time, text}
+        let originalLyrics = []; 
+        let translatedLyricsData = {}; // Stores loaded text for each language
+        let activeLanguages = new Set(); // Stores currently selected languages
+        
+        let songs = [];
+        let songIndex = -1;
+        let isPlaying = false;
+        let syncInterval;
+        let currentLyricIndex = -1;
+        
+        let currentSongFileName = ''; // The full path
+        let currentBaseName = ''; // Just the filename without extension
+        let lrcContentForDownload = '';
+        
+        let currentFontSize = 1.2; // rem
+
+        // Defined Languages
+        const availableLanguages = [
+            { id: 'English', label: 'English' },
+            { id: 'Arabic', label: 'العربية' },
+            { id: 'Amazigh', label: 'ⵜⴰⵎⴰⵣⵉⵖⵜ' },
+            { id: 'French', label: 'Français' },
+            { id: 'AmazighLatin', label: 'Tamaziɣt MA' },
+            { id: 'AmazighLatinKab', label: 'Tamaziɣt DZ' },
+            { id: 'AmazighArab', label: 'تامازيغت' },
+            { id: 'MoroccanArabic', label: 'الداريجا' }
+        ];
+
+        // --- Initialization ---
+        document.addEventListener('DOMContentLoaded', () => {
+            loadSongList();
+            setupEventListeners();
+            createLanguageChips();
+            audioPlayer.volume = 0.7;
+            volumeLevel.style.width = '70%';
+        });
+
+        // --- Event Listeners ---
+        function setupEventListeners() {
+            toggleSongListBtn.addEventListener('click', () => {
+                songList.classList.toggle('hidden');
+                // Scroll to active song if list is opened
+                if (!songList.classList.contains('hidden') && songIndex !== -1) {
+                    const activeItem = songList.children[songIndex];
+                    if (activeItem) activeItem.scrollIntoView({ block: 'center' });
+                }
+            });
+
+            // Audio Events
+            audioPlayer.addEventListener('timeupdate', () => {
+                updateProgress();
+                syncLyrics();
+            });
+            audioPlayer.addEventListener('loadedmetadata', () => {
+                totalDurationDisplay.textContent = formatTime(audioPlayer.duration);
+            });
+            audioPlayer.addEventListener('ended', () => {
+                if (songIndex < songs.length - 1) playNextSong();
+                else { isPlaying = false; updatePlayPauseIcon(); }
+            });
+
+            // Controls
+            playPauseBtn.addEventListener('click', togglePlayPause);
+            document.getElementById('prevBtn').addEventListener('click', playPreviousSong);
+            document.getElementById('nextBtn').addEventListener('click', playNextSong);
+            document.getElementById('rewindBtn').addEventListener('click', () => seekRelative(-5));
+            document.getElementById('forwardBtn').addEventListener('click', () => seekRelative(5));
+
+            // Progress Bar
+            progressContainer.addEventListener('click', (e) => {
+                const width = progressContainer.clientWidth;
+                const clickX = e.offsetX;
+                const duration = audioPlayer.duration;
+                if (duration) {
+                    audioPlayer.currentTime = (clickX / width) * duration;
+                }
+            });
+
+            // Volume
+            volumeSlider.addEventListener('click', setVolume);
+
+            // Downloads
+            downloadSongBtn.addEventListener('click', () => {
+                if (currentSongFileName) downloadFile(currentSongFileName, null, 'audio');
+            });
+            downloadLrcBtn.addEventListener('click', () => {
+                if (lrcContentForDownload) {
+                    const filename = PATHS.LYRICS + currentBaseName + '.lrc';
+                    downloadFile(filename, lrcContentForDownload, 'text');
+                }
+            });
+
+            // Font Size
+            fontUpBtn.addEventListener('click', () => changeFontSize(0.1));
+            fontDownBtn.addEventListener('click', () => changeFontSize(-0.1));
+        }
+
+        // --- Core Logic ---
+
+        function loadSongList() {
+            fetch('data.txt')
+                .then(res => {
+                    if (!res.ok) throw new Error("Could not load song list");
+                    return res.text();
+                })
+                .then(data => {
+                    // Filter empty lines
+                    const filenames = data.trim().split('\n').filter(line => line.trim());
+                    
+                    // We DO NOT prepend the path here for the list display, 
+                    // we handle the path construction when loading the song.
+                    songs = filenames.map(f => f.trim());
+
+                    // Render List
+                    songList.innerHTML = '';
+                    songs.forEach((file, index) => {
+                        const li = document.createElement('li');
+                        const displayName = file.replace(/\.[^/.]+$/, ""); // Remove extension
+                        li.innerHTML = `<i class="fas fa-music"></i> ${displayName}`;
+                        li.onclick = () => {
+                            songIndex = index;
+                            loadSong(file);
+                        };
+                        songList.appendChild(li);
+                    });
+
+                    toggleSongListBtn.style.display = 'block';
+                })
+                .catch(err => {
+                    showError("Error: Could not load data.txt. Make sure it exists.");
+                    console.error(err);
+                });
+        }
+
+        function loadSong(filename) {
+            // 1. Setup UI
+            errorDisplay.style.display = 'none';
+            songList.classList.add('hidden');
+            playerContainer.style.display = 'block'; // Make player visible
+            playerContainer.style.display = 'flex'; // Ensure flex layout applies
+            playerContainer.style.flexDirection = window.innerWidth <= 600 ? 'column' : 'column'; // Reset specific styles
+            
+            // 2. Prepare Paths
+            // Assumes filename is "MySong.mp3"
+            const audioPath = PATHS.AUDIO + filename; 
+            currentSongFileName = audioPath;
+            currentBaseName = filename.replace(/\.[^/.]+$/, ""); // "MySong"
+            
+            currentSongTitle.textContent = currentBaseName;
+
+            // 3. Reset State
+            resetPlayer();
+            activeLanguages.clear();
+            updateLanguageChipsUI();
+            
+            // 4. Load Audio
+            audioPlayer.src = audioPath;
+            audioPlayer.load();
+            audioPlayer.play().then(() => {
+                isPlaying = true;
+                updatePlayPauseIcon();
+            }).catch(e => console.log("Auto-play blocked or waiting interaction", e));
+
+            // 5. Load Lyrics (from lyrics folder)
+            const lrcPath = PATHS.LYRICS + currentBaseName + '.lrc';
+            
+            fetch(lrcPath)
+                .then(res => {
+                    if (!res.ok) throw new Error("No LRC found");
+                    return res.text();
+                })
+                .then(text => {
+                    lrcContentForDownload = text;
+                    originalLyrics = parseLRC(text);
+                    currentLyrics = originalLyrics;
+                    displayLyrics(); // Render original first
+                    loadTranslations(currentBaseName); // Fetch other languages in background
+                    downloadLrcBtn.style.display = 'block';
+                })
+                .catch(() => {
+                    currentLyrics = [];
+                    lyricsDisplay.innerHTML = '<p style="padding:20px; color:#888;">No lyrics available.</p>';
+                    downloadLrcBtn.style.display = 'none';
+                    // Even if lyrics fail, try loading translations? usually no point if no timestamps.
+                });
+        }
+
+        function loadTranslations(songName) {
+            translatedLyricsData = {};
+            
+            availableLanguages.forEach(lang => {
+                // Translation structure logic from original code:
+                // Assuming folder structure: Root -> Language -> SongName.txt
+                const path = `${lang.id}/${songName}.txt`;
+                
+                fetch(path)
+                    .then(res => {
+                        if(res.ok) return res.text();
+                        throw new Error("Missing");
+                    })
+                    .then(text => {
+                        // Store array of lines
+                        translatedLyricsData[lang.id] = text.split('\n').filter(l => l.trim() !== '');
+                    })
+                    .catch(() => { /* Ignore missing translations */ });
+            });
+        }
+
+        // --- Lyrics Display & Sync ---
+
+        function parseLRC(text) {
+            const lines = text.split('\n');
+            const result = [];
+            for (const line of lines) {
+                // Match [mm:ss.xx]
+                const match = line.match(/\[(\d+):(\d+)\.(\d+)\](.*)/);
+                if (match) {
+                    const min = parseInt(match[1]);
+                    const sec = parseInt(match[2]);
+                    const ms = parseInt(match[3]);
+                    // Handle 2 or 3 digit ms
+                    const time = min * 60 + sec + (match[3].length === 3 ? ms/1000 : ms/100);
+                    result.push({ time, text: match[4].trim() });
+                }
+            }
+            return result;
+        }
+
+        function displayLyrics() {
+            if (!originalLyrics.length) return;
+
+            // Generate HTML
+            const html = originalLyrics.map((line, index) => {
+                // Base Lyric
+                let content = `<div class="lyric-original">${line.text || "&nbsp;"}</div>`;
+                
+                // Append Active Translations
+                activeLanguages.forEach(langId => {
+                    if (translatedLyricsData[langId] && translatedLyricsData[langId][index]) {
+                        content += `<div class="lyric-translation" style="color:${getColorForLang(langId)}">${translatedLyricsData[langId][index]}</div>`;
+                    }
+                });
+
+                return `<div class="lyric-block" id="line-${index}" onclick="seekTo(${line.time})">
+                            ${content}
+                        </div>`;
+            }).join('');
+
+            lyricsDisplay.innerHTML = html;
+        }
+
+        function syncLyrics() {
+            if (!currentLyrics.length) return;
+            
+            const time = audioPlayer.currentTime;
+            
+            // Find the active line (the one that started most recently)
+            let activeIndex = -1;
+            for (let i = 0; i < currentLyrics.length; i++) {
+                if (currentLyrics[i].time <= time) {
+                    activeIndex = i;
+                } else {
+                    break;
+                }
+            }
+
+            if (activeIndex !== currentLyricIndex) {
+                // Remove active class from old
+                if (currentLyricIndex !== -1) {
+                    const oldEl = document.getElementById(`line-${currentLyricIndex}`);
+                    if (oldEl) oldEl.classList.remove('active');
+                }
+
+                currentLyricIndex = activeIndex;
+
+                // Add active class to new
+                if (currentLyricIndex !== -1) {
+                    const newEl = document.getElementById(`line-${currentLyricIndex}`);
+                    if (newEl) {
+                        newEl.classList.add('active');
+                        scrollToActiveLyric(newEl);
+                    }
+                }
+            }
+        }
+
+        function scrollToActiveLyric(element) {
+            // Smooth scroll to center of container
+            const container = lyricsDisplay;
+            const elementTop = element.offsetTop;
+            const elementHeight = element.offsetHeight;
+            const containerHeight = container.offsetHeight;
+            
+            container.scrollTo({
+                top: elementTop - (containerHeight / 2) + (elementHeight / 2),
+                behavior: 'smooth'
+            });
+        }
+
+        // --- UI Helpers ---
+
+        function createLanguageChips() {
+            languageChipsContainer.innerHTML = '';
+            availableLanguages.forEach(lang => {
+                const btn = document.createElement('button');
+                btn.className = 'lang-chip';
+                btn.textContent = lang.label;
+                btn.dataset.id = lang.id;
+                btn.onclick = () => toggleLanguage(lang.id);
+                languageChipsContainer.appendChild(btn);
+            });
+        }
+
+        function toggleLanguage(langId) {
+            if (activeLanguages.has(langId)) {
+                activeLanguages.delete(langId);
+            } else {
+                activeLanguages.add(langId);
+            }
+            updateLanguageChipsUI();
+            
+            // Re-render lyrics to show/hide translations
+            // Save scroll position logic could go here, but syncLyrics handles it fast enough usually
+            displayLyrics();
+            
+            // Re-highlight current line immediately
+            const activeEl = document.getElementById(`line-${currentLyricIndex}`);
+            if(activeEl) activeEl.classList.add('active');
+        }
+
+        function updateLanguageChipsUI() {
+            const buttons = languageChipsContainer.querySelectorAll('.lang-chip');
+            buttons.forEach(btn => {
+                if (activeLanguages.has(btn.dataset.id)) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+        }
+
+        function changeFontSize(delta) {
+            currentFontSize += delta;
+            // Clamp size
+            if (currentFontSize < 0.8) currentFontSize = 0.8;
+            if (currentFontSize > 2.5) currentFontSize = 2.5;
+            
+            lyricsDisplay.style.fontSize = `${currentFontSize}rem`;
+        }
+
+        function getColorForLang(langId) {
+            // Optional: return specific colors per language if desired
+            return 'var(--translation-color)';
+        }
+
+        function resetPlayer() {
+            currentLyricIndex = -1;
+            progressBar.style.width = '0%';
+            currentTimeDisplay.textContent = '0:00';
+            lyricsDisplay.innerHTML = '';
+        }
+
+        function togglePlayPause() {
+            if (audioPlayer.paused) {
+                audioPlayer.play();
+                isPlaying = true;
+            } else {
+                audioPlayer.pause();
+                isPlaying = false;
+            }
+            updatePlayPauseIcon();
+        }
+
+        function updatePlayPauseIcon() {
+            playPauseBtn.innerHTML = isPlaying ? '<i class="fas fa-pause"></i>' : '<i class="fas fa-play"></i>';
+        }
+
+        function updateProgress() {
+            if (audioPlayer.duration) {
+                const percent = (audioPlayer.currentTime / audioPlayer.duration) * 100;
+                progressBar.style.width = `${percent}%`;
+                currentTimeDisplay.textContent = formatTime(audioPlayer.currentTime);
+            }
+        }
+
+        function seekRelative(seconds) {
+            audioPlayer.currentTime += seconds;
+        }
+        
+        // Expose for onClick in HTML
+        window.seekTo = function(time) {
+            audioPlayer.currentTime = time;
+            if (audioPlayer.paused) {
+                audioPlayer.play();
+                isPlaying = true;
+                updatePlayPauseIcon();
+            }
+        };
+
+        function setVolume(e) {
+            const width = this.clientWidth;
+            const clickX = e.offsetX;
+            const vol = Math.max(0, Math.min(1, clickX / width));
+            audioPlayer.volume = vol;
+            volumeLevel.style.width = (vol * 100) + '%';
+        }
+
+        function playNextSong() {
+            if (songs.length === 0) return;
+            songIndex = (songIndex + 1) % songs.length;
+            loadSong(songs[songIndex]);
+        }
+
+        function playPreviousSong() {
+            if (songs.length === 0) return;
+            songIndex = (songIndex - 1 + songs.length) % songs.length;
+            loadSong(songs[songIndex]);
+        }
+
+        function formatTime(s) {
+            if (isNaN(s)) return "0:00";
+            const min = Math.floor(s / 60);
+            const sec = Math.floor(s % 60);
+            return `${min}:${sec < 10 ? '0' : ''}${sec}`;
+        }
+
+        function showError(msg) {
+            errorDisplay.textContent = msg;
+            errorDisplay.style.display = 'block';
+            setTimeout(() => errorDisplay.style.display = 'none', 5000);
+        }
+
+        function downloadFile(path, content, type) {
+            const link = document.createElement('a');
+            const name = path.split('/').pop();
+            link.download = name;
+            
+            if (type === 'text') {
+                link.href = 'data:text/plain;charset=utf-8,' + encodeURIComponent(content);
+            } else {
+                link.href = path; // Direct link to file
+            }
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
+</body>
+</html>
